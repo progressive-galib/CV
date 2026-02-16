@@ -1,0 +1,40 @@
+name: Build LaTeX Document
+
+on: [push]
+
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+
+      - name: Rename File with Metrics
+        run: |
+          # 1. Get Timestamp (YYYYMMDD-HHMM)
+          TIMESTAMP=$(date +'%Y%m%d-%H%M')
+          
+          # 2. Get Word Count (using texcount if available, or simple wc)
+          # The docker image usually has texcount, but let's use wc for simplicity on the raw file
+          WORDCOUNT=$(wc -w < main.tex | tr -d ' ')
+          
+          # 3. Construct new filename
+          NEW_NAME="doc_${TIMESTAMP}_${WORDCOUNT}w.pdf"
+          
+          # 4. Rename
+          mv main.pdf $NEW_NAME
+          echo "Generated: $NEW_NAME"
+          
+          # 5. Save name for upload step
+          echo "PDF_NAME=$NEW_NAME" >> $GITHUB_ENV
+
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-pdf
+          path: ${{ env.PDF_NAME }}
