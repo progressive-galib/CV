@@ -11,21 +11,21 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        /* The Responsive Container */
         #viewer-container { 
             display: grid;
-            grid-template-columns: 1fr; /* Default: 1 column */
+            grid-template-columns: 1fr; /* Default: Single Column */
             gap: 20px;
             padding: 20px;
             max-width: 100%;
             justify-items: center;
+            transition: all 0.3s ease;
         }
 
-        /* Wide Screen: Switch to 2 columns */
+        /* 2-Page Mode logic */
         @media (min-width: 1200px) {
-            #viewer-container {
+            #viewer-container.two-page {
                 grid-template-columns: 1fr 1fr;
-                max-width: 1600px; /* Prevents pages from getting comically large */
+                max-width: 1600px;
                 margin: 0 auto;
             }
         }
@@ -33,19 +33,28 @@
         canvas { 
             box-shadow: 0 0 15px rgba(0,0,0,0.5); 
             background: white; 
-            max-width: 100%; /* Ensures canvas fits small screens */
+            max-width: 100%;
             height: auto !important; 
         }
 
-        a { color: #8ab4f8; text-decoration: none; margin-left: 20px; font-weight: bold; }
-        .page-info { color: #ccc; font-size: 0.9em; margin-top: 5px; }
+        .controls { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        a, button { 
+            color: #8ab4f8; text-decoration: none; font-weight: bold; 
+            background: none; border: 1px solid #8ab4f8; padding: 5px 10px; 
+            cursor: pointer; border-radius: 4px; font-size: 14px;
+        }
+        button:hover { background: rgba(138, 180, 248, 0.1); }
+        .page-info { color: #ccc; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <div class="toolbar">
         <div>Curriculum Vitae</div>
-        <div class="page-info" id="page-status">Initializing...</div>
-        <a href="{{FILENAME}}" download>Download PDF</a>
+        <div class="controls">
+            <div class="page-info" id="page-status">Initializing...</div>
+            <button onclick="toggleLayout()" id="layout-btn">Switch to 2-Page</button>
+            <a href="{{FILENAME}}" download>Download PDF</a>
+        </div>
     </div>
 
     <div id="viewer-container"></div>
@@ -54,12 +63,18 @@
         const url = './{{FILENAME}}';
         const container = document.getElementById('viewer-container');
         const status = document.getElementById('page-status');
+        const btn = document.getElementById('layout-btn');
+
+        function toggleLayout() {
+            container.classList.toggle('two-page');
+            const isTwoPage = container.classList.contains('two-page');
+            btn.textContent = isTwoPage ? "Switch to 1-Page" : "Switch to 2-Page";
+        }
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         pdfjsLib.getDocument(url).promise.then(pdf => {
-            status.textContent = `Document Loaded: ${pdf.numPages} Page(s)`;
-            
+            status.textContent = `${pdf.numPages} Page(s)`;
             for (let i = 1; i <= pdf.numPages; i++) {
                 renderPage(pdf, i);
             }
@@ -69,21 +84,14 @@
 
         function renderPage(pdf, pageNum) {
             pdf.getPage(pageNum).then(page => {
-                const scale = 1.5; // High quality render
+                const scale = 1.5;
                 const viewport = page.getViewport({ scale });
-
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-
                 container.appendChild(canvas);
-
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport
-                };
-                page.render(renderContext);
+                page.render({ canvasContext: context, viewport: viewport });
             });
         }
     </script>
