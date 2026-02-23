@@ -4,35 +4,65 @@
     <title>Galib's CV</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        body { background: #323639; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
-        .toolbar { background: #202124; color: white; width: 100%; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 100; }
-        canvas { margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); background: white; }
-        a { color: #8ab4f8; text-decoration: none; margin-left: 20px; }
+        body { background: #525659; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
+        .toolbar { 
+            background: #323639; color: white; width: 100%; padding: 15px; 
+            text-align: center; position: sticky; top: 0; z-index: 100; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #viewer-container { margin: 20px 0; display: flex; flex-direction: column; gap: 20px; }
+        canvas { box-shadow: 0 0 15px rgba(0,0,0,0.5); background: white; }
+        a { color: #8ab4f8; text-decoration: none; margin-left: 20px; font-weight: bold; }
+        .page-info { color: #ccc; font-size: 0.9em; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <span>Curriculum Vitae</span>
-        <a href="{{FILENAME}}" download>Download PDF</a>
+        <div>Curriculum Vitae</div>
+        <div class="page-info" id="page-status">Loading document...</div>
+        <a href="{{FILENAME}}" download>Download Full PDF</a>
     </div>
-    <canvas id="pdf-viewer"></canvas>
+
+    <div id="viewer-container"></div>
 
     <script>
         const url = './{{FILENAME}}';
-        const canvas = document.getElementById('pdf-viewer');
-        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('viewer-container');
+        const status = document.getElementById('page-status');
 
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         pdfjsLib.getDocument(url).promise.then(pdf => {
-            // Just render the first page for the preview
-            pdf.getPage(1).then(page => {
-                const viewport = page.getViewport({ scale: 1.5 });
+            status.textContent = `Document Loaded: ${pdf.numPages} Page(s)`;
+            
+            // Loop through every page
+            for (let i = 1; i <= pdf.numPages; i++) {
+                renderPage(pdf, i);
+            }
+        }).catch(err => {
+            status.textContent = "Error: " + err.message;
+        });
+
+        function renderPage(pdf, pageNum) {
+            pdf.getPage(pageNum).then(page => {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale });
+
+                // Create a new canvas for this specific page
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
-                page.render({ canvasContext: ctx, viewport: viewport });
+
+                container.appendChild(canvas);
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
             });
-        });
+        }
     </script>
 </body>
 </html>
