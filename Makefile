@@ -1,7 +1,7 @@
 MAIN = main
 OUTPUT_DIR = build
 # Generate timestamp in format: 
-TS := $(shell date +%A%d%B%Y)
+TS := $(shell date +%A%d%B%Y_%H%M)
 
 # Determine the base name
 BASE_NAME = $(shell if [ -s filename ]; then cat filename; else echo "CV"; fi)
