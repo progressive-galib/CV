@@ -16,25 +16,53 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # This tells GitHub to actually download the real pfp2.jpg instead of the pointer
-          lfs: true
 
-      - name: LFS Fix
-        run: git lfs pull
+      - name: Set Variables and Timestamp
+        id: vars
+        run: |
+          # 1. Determine Base Name (reads 'filename' or defaults to 'CV')
+          if [ -s filename ]; then
+            BASE_NAME=$(cat filename | tr -d '\n\r')
+          else
+            BASE_NAME="CV"
+          fi
+          
+          # 2. Generate Timestamp (Matches your Makefile format)
+          TS=$(date +%A%d%B%Y_%H%M)
+          
+          # 3. Define Final Name
+          FINAL_NAME="${BASE_NAME}_${TS}"
+          
+          # 4. Export to Environment for later steps
+          echo "FINAL_NAME=$FINAL_NAME" >> $GITHUB_ENV
+          echo "pdf_name=$FINAL_NAME" >> $GITHUB_OUTPUT
 
-      - name: Build PDF and Prepare Assets
+      - name: Compile LaTeX
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
-          extra_system_packages: "make"
-          run_script: make
+          # latexmk is used by default; it will pick up your .latexmkrc
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
 
-      - name: Get Filename
-        id: get_name
+      - name: Prepare Deployment Directory
         run: |
-          FNAME=$(find build -name "*.pdf" ! -name "main.pdf" -exec basename {} .pdf \;)
-          echo "pdf_name=$FNAME" >> $GITHUB_OUTPUT
+          # Ensure build directory exists (created by latexmk based on your .latexmkrc)
+          mkdir -p build
+          
+          # 1. Create the renamed copy of the PDF
+          cp build/main.pdf build/${{ env.FINAL_NAME }}.pdf
+          
+          # 2. Generate index.html from template
+          if [ -f template.html ]; then
+            sed "s/{{FILENAME}}/${{ env.FINAL_NAME }}.pdf/g" template.html > build/index.html
+          else
+            echo "Error: template.html not found!" && exit 1
+          fi
+          
+          # 3. Cleanup auxiliary files (Keep only .pdf and .html)
+          find build -type f ! -name '*.pdf' ! -name '*.html' -delete
+          
+          echo "Build directory prepared with ${{ env.FINAL_NAME }}.pdf"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
@@ -45,8 +73,8 @@ jobs:
       - name: Archive Production PDF
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.get_name.outputs.pdf_name }}
-          path: build/${{ steps.get_name.outputs.pdf_name }}.pdf
+          name: ${{ steps.vars.outputs.pdf_name }}
+          path: build/${{ steps.vars.outputs.pdf_name }}.pdf
           retention-days: 90
 
   deploy:
