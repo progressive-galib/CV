@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Galib's CV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        body { background: #323639; margin: 0; display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
+        .toolbar { background: #202124; color: white; width: 100%; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        canvas { margin-top: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.4); background: white; }
+        a { color: #8ab4f8; text-decoration: none; margin-left: 20px; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <span>Curriculum Vitae</span>
+        <a href="{{FILENAME}}" download>Download PDF</a>
+    </div>
+    <canvas id="pdf-viewer"></canvas>
+
+    <script>
+        const url = './{{FILENAME}}';
+        const canvas = document.getElementById('pdf-viewer');
+        const ctx = canvas.getContext('2d');
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        pdfjsLib.getDocument(url).promise.then(pdf => {
+            // Just render the first page for the preview
+            pdf.getPage(1).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                page.render({ canvasContext: ctx, viewport: viewport });
+            });
+        });
+    </script>
+</body>
+</html>
