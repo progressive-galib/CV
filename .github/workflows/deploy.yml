@@ -16,24 +16,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: true # <--- This pulls the actual image data instead of the pointer
 
       - name: Set Variables and Timestamp
         id: vars
         run: |
-          # 1. Determine Base Name (reads 'filename' or defaults to 'CV')
           if [ -s filename ]; then
             BASE_NAME=$(cat filename | tr -d '\n\r')
           else
             BASE_NAME="CV"
           fi
-          
-          # 2. Generate Timestamp (Matches your Makefile format)
           TS=$(date +%A%d%B%Y_%H%M)
-          
-          # 3. Define Final Name
           FINAL_NAME="${BASE_NAME}_${TS}"
-          
-          # 4. Export to Environment for later steps
           echo "FINAL_NAME=$FINAL_NAME" >> $GITHUB_ENV
           echo "pdf_name=$FINAL_NAME" >> $GITHUB_OUTPUT
 
@@ -41,28 +36,18 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
-          # latexmk is used by default; it will pick up your .latexmkrc
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
 
       - name: Prepare Deployment Directory
         run: |
-          # Ensure build directory exists (created by latexmk based on your .latexmkrc)
           mkdir -p build
-          
-          # 1. Create the renamed copy of the PDF
           cp build/main.pdf build/${{ env.FINAL_NAME }}.pdf
-          
-          # 2. Generate index.html from template
           if [ -f template.html ]; then
             sed "s/{{FILENAME}}/${{ env.FINAL_NAME }}.pdf/g" template.html > build/index.html
           else
             echo "Error: template.html not found!" && exit 1
           fi
-          
-          # 3. Cleanup auxiliary files (Keep only .pdf and .html)
           find build -type f ! -name '*.pdf' ! -name '*.html' -delete
-          
-          echo "Build directory prepared with ${{ env.FINAL_NAME }}.pdf"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
