@@ -1,0 +1,67 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{experience}[2026/02/10 Resume Experience Style]
+
+\RequirePackage{pgfkeys}
+\RequirePackage{pgffor}
+\RequirePackage{xcolor}
+\RequirePackage{etoolbox}
+
+\pgfkeys{
+  /experience/.is family,
+  /experience,
+  company/.store in  = \expCompany,
+  title/.store in    = \expTitle,
+  dates/.store in    = \expDates,
+  location/.store in = \expLocation,
+  tags/.store in     = \expTags,
+  bullets/.store in  = \expBullets,
+}
+
+% Initialize keys to empty
+\newcommand{\expReset}{%
+  \pgfkeys{/experience/.cd,
+    title={},
+    company={},
+    dates={},
+    location={},
+    tags={},
+    bullets={}
+  }%
+}
+
+\newcommand{\experience}[1]{%
+  \expReset%
+  \pgfkeys{/experience/.cd, #1}%
+  \cvevent{\expTitle}{\expCompany}{\expDates}{\expLocation}%
+  
+  % Robust check for bullets: only start itemize if at least one item is non-blank
+  \def\hasUsefulBullets{0}%
+  \ifdefempty{\expBullets}{}{%
+    \foreach \itemcontent in \expBullets {%
+      \expandafter\ifblank\expandafter{\itemcontent}{}{\gdef\hasUsefulBullets{1}}%
+    }%
+  }%
+  
+  \if\hasUsefulBullets 1%
+    \begin{itemize}
+      \foreach \itemcontent in \expBullets {%
+        \expandafter\ifblank\expandafter{\itemcontent}{}{\item \itemcontent}%
+      }%
+    \end{itemize}
+  \fi
+
+  % Robust check for tags
+  \def\hasUsefulTags{0}%
+  \ifdefempty{\expTags}{}{%
+    \foreach \tagcontent in \expTags {%
+      \expandafter\ifblank\expandafter{\tagcontent}{}{\gdef\hasUsefulTags{1}}%
+    }%
+  }%
+  
+  \if\hasUsefulTags 1%
+    \foreach \tagcontent in \expTags {%
+      \expandafter\ifblank\expandafter{\tagcontent}{}{\cvtag{\tagcontent}}%
+    }%
+  \fi
+  %\par\medskip
+}

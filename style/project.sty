@@ -1,0 +1,40 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{projects}[2026/02/21 Custom Projects Command]
+
+\RequirePackage{pgfkeys}
+\RequirePackage{etoolbox}
+\RequirePackage{hyperref}
+\RequirePackage{fontawesome5}
+
+% Define keys
+\pgfkeys{
+ /project/.is family, /project,
+ title/.estore in = \projectTitle,
+ links/.estore in = \projectLinks,
+ tags/.estore in  = \projectTags,
+ bullets/.estore in = \projectBullets,
+}
+
+% Helper to expand the tags list before passing to forcsvlist
+\newcommand{\renderProjectTags}[1]{%
+  \forcsvlist{\cvtag}{#1}%
+}
+
+\newcommand{\project}[1]{%
+  \pgfkeys{/project, #1}%
+  
+  % Render Header
+  \cvevent{\projectTitle\ \faLink\ \faGithub\ \href{\projectLinks}{GitHub}}{}{}{}%
+  
+  % Render Bullets (Handled individually to avoid list nesting issues)
+  \begin{itemize}
+    \renewcommand*{\do}[1]{\item ##1}
+    \expandafter\docsvlist\expandafter{\projectBullets}
+  \end{itemize}
+  
+  % Render Tags using the helper to ensure \projectTags is expanded correctly
+  \expandafter\renderProjectTags\expandafter{\projectTags}
+  
+  %\par\medskip
+  
+}

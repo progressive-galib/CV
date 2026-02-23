@@ -1,30 +1,85 @@
-\documentclass[11pt,a4paper]{article}
 
-% Use geometry to set margins - useful for CVs
-\usepackage[margin=1in]{geometry}
+
+
+
+\documentclass[10pt,a4paper,ragged2e,withhyper]{style/altacv}
+
+
+
+\geometry{left=1.25cm,right=1.25cm,top=1.5cm,bottom=1.5cm,columnsep=1.2cm}
+
+% The paracol package lets you typeset columns of text in parallel
+\usepackage{paracol}
+%\usepackage{code/aerefedtra}
+\usepackage{style/experience}
+\usepackage{style/project}
+\usepackage{lipsum}
+%\usepackage{etoolbox}
+
+
+% Change the font if you want to, depending on whether
+% you're using pdflatex or xelatex/lualatex
+\ifxetexorluatex
+  % If using xelatex or lualatex:
+  \setmainfont{Roboto Slab}
+  \setsansfont{Lato}
+  \renewcommand{\familydefault}{\sfdefault}
+\else
+  % If using pdflatex:
+  \usepackage[rm]{roboto}
+  \usepackage[defaultsans]{lato}
+  \usepackage{hyperref}
+  % \usepackage{sourcesanspro}
+  \renewcommand{\familydefault}{\sfdefault}
+\fi
+
+
+\definecolor{SlateGrey}{HTML}{2E2E2E}
+\definecolor{LightGrey}{HTML}{666666}
+\definecolor{DarkPastelRed}{HTML}{450808}
+\definecolor{PastelRed}{HTML}{8F0D0D}
+\definecolor{GoldenEarth}{HTML}{E7D192}
+\colorlet{name}{black}
+\colorlet{tagline}{PastelRed}
+\colorlet{heading}{DarkPastelRed}
+\colorlet{headingrule}{GoldenEarth}
+\colorlet{subheading}{PastelRed}
+\colorlet{accent}{PastelRed}
+\colorlet{emphasis}{SlateGrey}
+\colorlet{body}{LightGrey}
+
+
+\renewcommand{\namefont}{\Huge\rmfamily\bfseries}
+\renewcommand{\personalinfofont}{\footnotesize}
+\renewcommand{\cvsectionfont}{\LARGE\rmfamily\bfseries}
+\renewcommand{\cvsubsectionfont}{\large\bfseries}
+
+\renewcommand{\itemmarker}{{\small\textbullet}}
+\renewcommand{\ratingmarker}{\faCircle}
+
+%\input{pubs-num}
+
+%\addbibresource{sample.bib}
+
+%\usepackage{microtype}
+\usepackage{microtype}
+\usepackage{ragged2e}
+
+% Define a new environment for justified text without word breaking
+\newenvironment{justifyy}{%
+  \microtypesetup{protrusion=false} % Disable protrusion
+  \hyphenpenalty=10000 % Disable hyphenation
+  \exhyphenpenalty=10000 % Disable hyphenation
+  \sloppy
+  \justifying % Justify text
+}
+
+
+
+
+%%\input{aprojects}}
 
 \begin{document}
 
-% --- Page 1 ---
-\section*{First Page}
-Page one says hi.
-
-\newpage 
-
-% --- Page 2 ---
-\section*{Second Page}
-Page two says hi.
-
-\newpage
-
-% --- Page 3 ---
-\section*{Third Page}
-Page three says hi.
-
-\newpage
-
-% --- Page 4 ---
-\section*{Fourth Page}
-Page four says hi.
-
+\input{code/root}
 \end{document}
