@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true # <--- This pulls the actual image data instead of the pointer
+          lfs: true
 
       - name: Set Variables and Timestamp
         id: vars
@@ -40,13 +40,23 @@ jobs:
 
       - name: Prepare Deployment Directory
         run: |
+          # FIX PERMISSIONS: The Docker container creates files as root.
+          # We take ownership back so the 'runner' user can modify them.
+          sudo chown -R $USER:$USER build
+          
           mkdir -p build
+          
+          # 1. Create the renamed copy
           cp build/main.pdf build/${{ env.FINAL_NAME }}.pdf
+          
+          # 2. Generate index.html from template
           if [ -f template.html ]; then
             sed "s/{{FILENAME}}/${{ env.FINAL_NAME }}.pdf/g" template.html > build/index.html
           else
             echo "Error: template.html not found!" && exit 1
           fi
+          
+          # 3. Cleanup auxiliary files (only keep pdf and html)
           find build -type f ! -name '*.pdf' ! -name '*.html' -delete
 
       - name: Upload Pages Artifact
