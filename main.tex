@@ -1,80 +1,31 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[a4paper]{article}
 
-% Use geometry to set margins - useful for CVs
-\usepackage[margin=1in]{geometry}
+% --- Packages ---
+\usepackage[margin=0pt]{geometry} % No margins to allow full bleed
+\usepackage{xcolor}               % For color control
+\usepackage{atbegshi}             % To hook into every page
+\usepackage{ifthen}               % For logic
+
+% --- Logic to Color Pages ---
+\AtBeginShipout{%
+  \AtBeginShipoutUpperLeft{%
+    \ifthenelse{\isodd{\value{page}}}%
+    {% 
+      % Odd Pages: Fill with Black
+      \put(0,-\paperheight){\color{black}\rule{\paperwidth}{\paperheight}}%
+    }%
+    {% 
+      % Even Pages: Do nothing (remains white/blank)
+    }%
+  }%
+}
 
 \begin{document}
 
-% --- Page 1 ---
-\section*{First Page}
-Page one says hi.
-
-\newpage 
-
-% --- Page 2 ---
-\section*{Second Page}
-Page two says hi.
-
-
-
-% --- Page 3 ---
-\section*{Third Page}
-Page three says hi.
-
-\newpage
-
-% --- Page 4 ---
-\section*{Fourth Page}
-Page four says hi.
-
-\newpage
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
-
-\newpage
-
+% Create 1000 empty pages
+\multido{\i=1+1}{1000}{
+    \null
+    \newpage
+}
 
 \end{document}
