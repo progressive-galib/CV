@@ -1,0 +1,27 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{style/ourkeys}[2026/02/24 Custom Boxed List Style]
+
+\RequirePackage{pgfkeys}
+\RequirePackage{pgffor}   % <--- Add this! Required for the .list handler
+\RequirePackage{graphicx}
+
+% Define the keys
+\pgfkeys{
+ /cvline/.is family, /cvline,
+ box item/.code={%
+    %\fbox{#1}\hspace{0.5em}%
+    \cvtag{#1}
+ },
+ render/.style={
+    /cvline/box item/.list={#1}
+ }
+}
+
+% Define the command
+\newcommand{\cvline}[1]{%
+  \par\noindent % Force a new paragraph and remove indent
+  \resizebox{\ifdim\width>\linewidth \linewidth\else\width\fi}{!}{%
+    \pgfkeys{/cvline/render={#1}}%
+  }%
+  \par% End the paragraph and add a tiny bit of vertical breathing room
+}
